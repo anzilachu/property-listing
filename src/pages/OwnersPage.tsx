@@ -3,14 +3,20 @@ import { useOutletContext } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { DataTable, type Column } from "../components/DataTable";
 import { EmptyState, SkeletonRows } from "../components/ui";
-import { fetchOwners } from "../lib/api";
+import { fetchOwners, getCachedOwners } from "../lib/api";
 import type { ClientOutletContext } from "./ClientShell";
 import type { Person } from "../types/domain";
 import { personColumns } from "./AgentsPage";
 
 export function OwnersPage() {
   const { clientId, token } = useOutletContext<ClientOutletContext>();
-  const owners = useQuery({ queryKey: ["owners", clientId], queryFn: () => fetchOwners(clientId, token) });
+  const owners = useQuery({
+    queryKey: ["owners", clientId],
+    queryFn: () => fetchOwners(clientId, token),
+    initialData: () => getCachedOwners(clientId),
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 60 * 5,
+  });
   const columns = useMemo<Column<Person>[]>(() => personColumns(false), []);
 
   return (

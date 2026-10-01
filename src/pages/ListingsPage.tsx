@@ -6,7 +6,7 @@ import { Download, Filter, Grid2X2, ImageOff, List, X } from "lucide-react";
 import { CommandPalette } from "../components/CommandPalette";
 import { DataTable, type Column } from "../components/DataTable";
 import { Button, EmptyState, Field, SkeletonRows, StatusChip } from "../components/ui";
-import { fetchListings } from "../lib/api";
+import { fetchListings, getCachedListings } from "../lib/api";
 import { formatAed, formatDate } from "../lib/utils";
 import type { ClientOutletContext } from "./ClientShell";
 import type { Listing } from "../types/domain";
@@ -27,6 +27,9 @@ export function ListingsPage() {
   const listings = useQuery({
     queryKey: ["listings", clientId, search],
     queryFn: () => fetchListings(clientId, token, search),
+    initialData: () => getCachedListings(clientId, search),
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 60,
   });
 
   const columns = useMemo<Column<Listing>[]>(() => [

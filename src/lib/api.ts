@@ -5,6 +5,21 @@ import { localPreviewEnabled, previewClientId, previewInfoForClient } from "./de
 
 const jsonHeaders = { "Content-Type": "application/json" };
 const adminClientsCacheKey = "prophub.adminClients";
+const dataCachePrefix = "prophub.cache";
+
+function cacheData<T>(key: string, value: T) {
+  localStorage.setItem(`${dataCachePrefix}.${key}`, JSON.stringify({ savedAt: Date.now(), value }));
+}
+
+function readDataCache<T>(key: string, maxAgeMs = 1000 * 60 * 30): T | undefined {
+  try {
+    const cached = JSON.parse(localStorage.getItem(`${dataCachePrefix}.${key}`) ?? "null") as { savedAt?: number; value?: T } | null;
+    if (!cached || typeof cached.savedAt !== "number" || Date.now() - cached.savedAt > maxAgeMs) return undefined;
+    return cached.value;
+  } catch {
+    return undefined;
+  }
+}
 
 async function readJson<T>(response: Response, schema?: z.ZodType<T>) {
   const payload = await response.json().catch(() => ({}));
@@ -24,6 +39,16 @@ async function adminAuthHeader() {
 
 function cacheAdminClients(clients: ClientSummary[]) {
   localStorage.setItem(adminClientsCacheKey, JSON.stringify(clients));
+}
+
+export function getCachedAdminClients() {
+  try {
+    const raw = localStorage.getItem(adminClientsCacheKey);
+    if (!raw) return undefined;
+    return normalizeClientSummaries(JSON.parse(raw) as ClientSummary[]);
+  } catch {
+    return undefined;
+  }
 }
 
 function normalizeClientSummary(value: Partial<ClientSummary> & { clientId: string; companyName: string; portalHost: string; link: string; createdAt: string }): ClientSummary {
@@ -67,8 +92,10 @@ function mergeCachedAdminClient(client: ClientSummary) {
 }
 
 function readCachedPublicClientInfo(clientId: string): PublicClientInfo | null {
+  const direct = readDataCache<PublicClientInfo>(`publicInfo.${clientId}`);
+  if (direct) return direct;
   try {
-    const cached = normalizeClientSummaries(JSON.parse(localStorage.getItem(adminClientsCacheKey) ?? "[]") as ClientSummary[]);
+    const cached = getCachedAdminClients() ?? [];
     const client = cached.find((item) => item.clientId === clientId || item.publicSlug === clientId);
     if (!client) return null;
     return {
@@ -83,6 +110,22 @@ function readCachedPublicClientInfo(clientId: string): PublicClientInfo | null {
   } catch {
     return null;
   }
+}
+
+export function getCachedPublicClientInfo(clientId: string) {
+  return readCachedPublicClientInfo(clientId) ?? undefined;
+}
+
+export function getCachedListings(clientId: string, search: string) {
+  return readDataCache<PaginatedListings>(`listings.${clientId}.${search || "all"}`);
+}
+
+export function getCachedAgents(clientId: string) {
+  return readDataCache<Person[]>(`agents.${clientId}`);
+}
+
+export function getCachedOwners(clientId: string) {
+  return readDataCache<Person[]>(`owners.${clientId}`);
 }
 
 export async function fetchAdminClients() {
@@ -138,9 +181,13 @@ export async function fetchPublicClientInfo(clientId: string) {
   }
   try {
     assertSupabaseConfigured();
-    return await readJson<PublicClientInfo>(
+    const info = await readJson<PublicClientInfo>(
       await fetch(`${functionsBaseUrl}/client-public-info?clientId=${encodeURIComponent(clientId)}`),
     );
+    cacheData(`publicInfo.${clientId}`, info);
+    cacheData(`publicInfo.${info.clientId}`, info);
+    cacheData(`publicInfo.${info.publicSlug}`, info);
+    return info;
   } catch (error) {
     const cached = readCachedPublicClientInfo(clientId);
     if (cached && localPreviewEnabled) return cached;
@@ -172,31 +219,37 @@ export async function fetchListings(clientId: string, token: string, search: str
   }
   const params = new URLSearchParams({ clientId });
   if (search) params.set("search", search);
-  return readJson<PaginatedListings>(
+  const listings = await readJson<PaginatedListings>(
     await fetch(`${functionsBaseUrl}/listings?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
   );
+  cacheData(`listings.${clientId}.${search || "all"}`, listings);
+  return listings;
 }
 
 export async function fetchAgents(clientId: string, token: string) {
   if (localPreviewEnabled) {
     return [] satisfies Person[];
   }
-  return readJson<Person[]>(
+  const agents = await readJson<Person[]>(
     await fetch(`${functionsBaseUrl}/agents?clientId=${encodeURIComponent(clientId)}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
   );
+  cacheData(`agents.${clientId}`, agents);
+  return agents;
 }
 
 export async function fetchOwners(clientId: string, token: string) {
   if (localPreviewEnabled) {
     return [] satisfies Person[];
   }
-  return readJson<Person[]>(
+  const owners = await readJson<Person[]>(
     await fetch(`${functionsBaseUrl}/owners?clientId=${encodeURIComponent(clientId)}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
   );
+  cacheData(`owners.${clientId}`, owners);
+  return owners;
 }

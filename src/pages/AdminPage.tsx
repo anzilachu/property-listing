@@ -5,7 +5,7 @@ import { Check, Copy, KeyRound, Plus, Settings2, Trash2, X } from "lucide-react"
 import { AdminTopBrand } from "../components/TopBrand";
 import { Button, EmptyState, Field, Panel, SelectField, SkeletonRows, StatusChip } from "../components/ui";
 import { DataTable, type Column } from "../components/DataTable";
-import { createAdminClient, deleteAdminClient, fetchAdminClients, updateAdminClient } from "../lib/api";
+import { createAdminClient, deleteAdminClient, fetchAdminClients, getCachedAdminClients, updateAdminClient } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import type { ClientSummary } from "../types/domain";
 
@@ -85,6 +85,9 @@ export function AdminPage() {
     queryKey: ["admin-clients"],
     queryFn: fetchAdminClients,
     enabled: !!supabase,
+    initialData: getCachedAdminClients,
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 60 * 2,
   });
 
   const adminSessionMissing = isAdminSessionError(clients.error);

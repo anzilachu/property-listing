@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, Home, ListChecks, UsersRound } from "lucide-react";
 import { ClientHeader } from "../components/TopBrand";
 import { EmptyState, SkeletonRows } from "../components/ui";
-import { fetchPublicClientInfo, issueClientToken } from "../lib/api";
+import { fetchPublicClientInfo, getCachedPublicClientInfo, issueClientToken } from "../lib/api";
 import { localPreviewEnabled } from "../lib/devPreview";
 import { cn, getAncestorOrigin, hostFromOrigin } from "../lib/utils";
 import { UnauthorizedPage } from "./UnauthorizedPage";
@@ -29,9 +29,9 @@ export function ClientShell() {
     queryKey: ["public-client-info", routeClientKey],
     queryFn: () => fetchPublicClientInfo(routeClientKey),
     enabled: !!routeClientKey,
-    staleTime: 0,
-    refetchInterval: 3_000,
-    refetchOnWindowFocus: true,
+    initialData: () => getCachedPublicClientInfo(routeClientKey),
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {

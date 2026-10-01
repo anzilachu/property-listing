@@ -14,8 +14,10 @@ import "./styles/globals.css";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
+      staleTime: 1000 * 60 * 2,
+      gcTime: 1000 * 60 * 30,
       retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
