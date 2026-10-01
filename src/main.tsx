@@ -9,8 +9,6 @@ import { ClientShell } from "./pages/ClientShell";
 import { ListingsPage } from "./pages/ListingsPage";
 import { AgentsPage } from "./pages/AgentsPage";
 import { OwnersPage } from "./pages/OwnersPage";
-import { UnauthorizedPage } from "./pages/UnauthorizedPage";
-import { localPreviewEnabled, previewClientId } from "./lib/devPreview";
 import "./styles/globals.css";
 
 const queryClient = new QueryClient({
@@ -25,7 +23,7 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
   {
     path: "/",
-    element: localPreviewEnabled ? <Navigate to={`/${previewClientId}`} replace /> : <UnauthorizedPage />,
+    element: <Navigate to="/admin/login" replace />,
   },
   { path: "/admin/login", element: <AdminLoginPage /> },
   { path: "/admin", element: <AdminPage /> },
@@ -38,7 +36,7 @@ const router = createBrowserRouter([
       { path: "owners", element: <OwnersPage /> },
     ],
   },
-  { path: "*", element: localPreviewEnabled ? <Navigate to={`/${previewClientId}`} replace /> : <UnauthorizedPage /> },
+  { path: "*", element: <Navigate to="/admin/login" replace /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
