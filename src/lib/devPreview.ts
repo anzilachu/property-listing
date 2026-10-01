@@ -1,5 +1,7 @@
 export const localPreviewEnabled =
-  import.meta.env.DEV && import.meta.env.VITE_DISABLE_LOCAL_PREVIEW !== "true";
+  import.meta.env.DEV
+    ? import.meta.env.VITE_DISABLE_LOCAL_PREVIEW !== "true"
+    : import.meta.env.VITE_DISABLE_LOCAL_PREVIEW === "false";
 
 export const previewClientId = "local_preview_12345678";
 
