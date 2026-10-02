@@ -10,6 +10,7 @@ PropHub is a React + Vite + Supabase app for Dubai real estate agencies that kee
 - Embed authorization flow using `ancestorOrigins` or `document.referrer`, then a 10-minute signed in-memory token.
 - Supabase schema with RLS, `user_roles`, `has_role('admin')`, `clients`, `integration_settings`, `locations`, `developers`, and cache table.
 - Edge Functions for admin clients, Bitrix test connection, public client info, token issuing, listings, agents, owners, and image proxy.
+- Client dashboard settings for per-agency account name, company name, logo, theme, and accent color.
 - AES-256-GCM helpers for secrets. Webhook URLs and portal credentials are never sent back to the browser in plain text.
 - Phase 2 `PortalAdapter` placeholders for Property Finder and Bayut/Dubizzle without guessing partner APIs.
 

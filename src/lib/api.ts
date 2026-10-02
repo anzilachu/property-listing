@@ -101,6 +101,7 @@ function readCachedPublicClientInfo(clientId: string): PublicClientInfo | null {
     return {
       clientId: client.clientId,
       publicSlug: client.publicSlug,
+      accountName: client.companyName,
       companyName: client.companyName,
       portalHost: client.portalHost,
       logoUrl: client.general.logoUrl ?? null,
@@ -211,6 +212,43 @@ export async function issueClientToken(clientId: string, parentOrigin: string) {
       body: JSON.stringify({ clientId, parentOrigin }),
     }),
   );
+}
+
+export async function updateClientGeneralSettings(
+  clientId: string,
+  token: string,
+  input: {
+    accountName: string;
+    companyName: string;
+    logoUrl?: string | null;
+    theme: "light" | "dark";
+    accentColor: string;
+  },
+) {
+  if (localPreviewEnabled) {
+    const info = {
+      ...previewInfoForClient(clientId),
+      accountName: input.accountName,
+      companyName: input.companyName,
+      logoUrl: input.logoUrl ?? null,
+      theme: input.theme,
+      accentColor: input.accentColor,
+    };
+    cacheData(`publicInfo.${clientId}`, info);
+    return info;
+  }
+  assertSupabaseConfigured();
+  const info = await readJson<PublicClientInfo>(
+    await fetch(`${functionsBaseUrl}/client-settings?clientId=${encodeURIComponent(clientId)}`, {
+      method: "PATCH",
+      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      body: JSON.stringify(input),
+    }),
+  );
+  cacheData(`publicInfo.${clientId}`, info);
+  cacheData(`publicInfo.${info.clientId}`, info);
+  cacheData(`publicInfo.${info.publicSlug}`, info);
+  return info;
 }
 
 export async function fetchListings(clientId: string, token: string, search: string) {

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, Copy, KeyRound, Plus, Settings2, Trash2, X } from "lucide-react";
 import { AdminTopBrand } from "../components/TopBrand";
-import { Button, EmptyState, Field, Panel, SelectField, SkeletonRows, StatusChip } from "../components/ui";
+import { Button, EmptyState, Field, Panel, SkeletonRows, StatusChip } from "../components/ui";
 import { DataTable, type Column } from "../components/DataTable";
 import { createAdminClient, deleteAdminClient, fetchAdminClients, getCachedAdminClients, updateAdminClient } from "../lib/api";
 import { supabase } from "../lib/supabase";
@@ -407,13 +407,6 @@ export function AdminPage() {
                   />
                   <Field label="SPA entityTypeId" value={settingsForm.entityTypeId} onChange={(event) => updateSettingsField("entityTypeId", event.target.value)} />
                   <Button variant="secondary" type="button" className="md:col-span-2"><KeyRound className="h-4 w-4" /> Test connection</Button>
-                </div>
-              </Panel>
-              <Panel title="Field mapping" eyebrow="Auto-detected">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {["Reference number", "Price in AED", "Original images", "Listing Owner", "PF Location Name", "Bayut Listing ID"].map((field) => (
-                    <SelectField key={field} label={field}><option>Auto-detect from Bitrix title</option><option>Manual override</option></SelectField>
-                  ))}
                 </div>
               </Panel>
               <Panel

@@ -35,6 +35,7 @@ export type ClientSummary = {
 export type PublicClientInfo = {
   clientId: string;
   publicSlug: string;
+  accountName?: string;
   companyName: string;
   portalHost: string;
   logoUrl?: string | null;

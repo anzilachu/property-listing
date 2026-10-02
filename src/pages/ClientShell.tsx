@@ -1,18 +1,21 @@
 import { NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Home, ListChecks, UsersRound } from "lucide-react";
+import { Building2, Home, ListChecks, Settings, UsersRound } from "lucide-react";
 import { ClientHeader } from "../components/TopBrand";
 import { EmptyState, SkeletonRows } from "../components/ui";
 import { fetchPublicClientInfo, getCachedPublicClientInfo, issueClientToken } from "../lib/api";
 import { localPreviewEnabled } from "../lib/devPreview";
 import { cn, getAncestorOrigin, hostFromOrigin } from "../lib/utils";
 import { UnauthorizedPage } from "./UnauthorizedPage";
+import type { PublicClientInfo } from "../types/domain";
 
 export type ClientOutletContext = {
   clientId: string;
+  routeClientKey: string;
   token: string;
   accentColor: string;
+  publicInfo: PublicClientInfo;
 };
 
 export function ClientShell() {
@@ -66,6 +69,7 @@ export function ClientShell() {
     { to: `/${routeClientKey}`, end: true, label: "Listings", icon: ListChecks },
     { to: `/${routeClientKey}/agents`, label: "Agents", icon: UsersRound },
     { to: `/${routeClientKey}/owners`, label: "Owners", icon: Home },
+    { to: `/${routeClientKey}/settings`, label: "Settings", icon: Settings },
   ], [routeClientKey]);
 
   if (publicInfo.isLoading) {
@@ -85,9 +89,9 @@ export function ClientShell() {
   }
 
   return (
-    <div className="min-h-screen text-[#101114] dark:text-white">
+    <div className="client-dashboard min-h-screen text-[#101114] dark:text-white">
       <ClientHeader
-        agencyName={publicInfo.data.companyName}
+        agencyName={publicInfo.data.accountName ?? publicInfo.data.companyName}
         logoUrl={publicInfo.data.logoUrl}
         lastSynced={lastSynced}
         theme={theme}
@@ -100,12 +104,12 @@ export function ClientShell() {
       <div className="grid lg:grid-cols-[248px_1fr]">
         <aside className="hidden min-h-[calc(100vh-4rem)] border-r border-black/10 bg-white/55 px-4 py-5 backdrop-blur-xl lg:block dark:border-white/10 dark:bg-white/[0.025]">
           <div className="mb-8 flex items-center gap-3 px-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#101114] text-white">
-              <Building2 className="h-4 w-4" />
+            <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-[var(--client-accent)] text-white">
+              {publicInfo.data.logoUrl ? <img src={publicInfo.data.logoUrl} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-4 w-4" />}
             </div>
             <div>
               <div className="text-sm font-semibold tracking-[-0.03em]">PropHub</div>
-              <div className="text-xs font-medium text-[#858790] dark:text-white/50">{publicInfo.data.companyName}</div>
+              <div className="text-xs font-medium text-[#858790] dark:text-white/50">{publicInfo.data.accountName ?? publicInfo.data.companyName}</div>
             </div>
           </div>
           <nav className="grid gap-2">
@@ -116,7 +120,7 @@ export function ClientShell() {
                 end={item.end}
                 className={({ isActive }) => cn(
                   "flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition",
-                  isActive ? "bg-[#101114] text-white" : "text-[#73757e] hover:bg-black/[0.04] hover:text-[#101114] dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white",
+                  isActive ? "bg-[var(--client-accent)] text-white" : "text-[#73757e] hover:bg-black/[0.04] hover:text-[#101114] dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -126,10 +130,10 @@ export function ClientShell() {
           </nav>
         </aside>
         <main className="min-w-0 px-4 py-6 md:px-7">
-          <Outlet context={{ clientId: publicInfo.data.clientId, token, accentColor: publicInfo.data.accentColor } satisfies ClientOutletContext} />
+          <Outlet context={{ clientId: publicInfo.data.clientId, routeClientKey, token, accentColor: publicInfo.data.accentColor, publicInfo: publicInfo.data } satisfies ClientOutletContext} />
         </main>
       </div>
-      <div className="fixed bottom-3 left-3 right-3 z-30 grid grid-cols-3 gap-2 rounded-2xl border border-black/10 bg-white/90 p-2 shadow-[0_16px_40px_rgba(16,17,20,0.10)] backdrop-blur-xl lg:hidden dark:border-white/10 dark:bg-[#15161a]/90">
+      <div className="fixed bottom-3 left-3 right-3 z-30 grid grid-cols-4 gap-2 rounded-2xl border border-black/10 bg-white/90 p-2 shadow-[0_16px_40px_rgba(16,17,20,0.10)] backdrop-blur-xl lg:hidden dark:border-white/10 dark:bg-[#15161a]/90">
         {navItems.map((item) => (
           <button
             key={item.to}

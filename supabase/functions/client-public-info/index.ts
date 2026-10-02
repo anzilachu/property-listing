@@ -37,6 +37,7 @@ Deno.serve(async (request) => {
     return json({
       clientId: clientRow.client_id,
       publicSlug: clientRow.public_slug ?? clientRow.client_id,
+      accountName: typeof general.accountName === "string" ? general.accountName : clientRow.company_name,
       companyName: clientRow.company_name,
       portalHost: clientRow.portal_host,
       logoUrl: typeof general.logo === "string" ? general.logo : null,

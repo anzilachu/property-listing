@@ -8,6 +8,7 @@ export const previewClientId = "local_preview_12345678";
 export const previewClientInfo = {
   clientId: previewClientId,
   publicSlug: previewClientId,
+  accountName: "PropHub Preview",
   companyName: "PropHub Preview",
   portalHost: "preview.local",
   logoUrl: null,
@@ -26,6 +27,7 @@ export function previewInfoForClient(clientId: string) {
     ...previewClientInfo,
     clientId,
     publicSlug: clientId,
+    accountName: name || previewClientInfo.companyName,
     companyName: name || previewClientInfo.companyName,
   };
 }

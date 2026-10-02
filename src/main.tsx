@@ -9,6 +9,7 @@ import { ClientShell } from "./pages/ClientShell";
 import { ListingsPage } from "./pages/ListingsPage";
 import { AgentsPage } from "./pages/AgentsPage";
 import { OwnersPage } from "./pages/OwnersPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import "./styles/globals.css";
 
 const queryClient = new QueryClient({
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { index: true, element: <ListingsPage /> },
       { path: "agents", element: <AgentsPage /> },
       { path: "owners", element: <OwnersPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
   { path: "*", element: <Navigate to="/admin/login" replace /> },
